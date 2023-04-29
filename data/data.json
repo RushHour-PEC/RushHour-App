@@ -1,0 +1,22 @@
+{"junctions": [{"id": 1,
+   "lat": 30.767012,
+   "long": 76.791282,
+   "name": "Vidya Path, Sector 2, Chandigarh, 160012",
+   "connected_junctions": [2, 6],
+   "traffic_light": true},
+  {"id": 2,
+   "lat": 30.76214,
+   "long": 76.795355,
+   "name": "Gill St, Sector 1, Chandigarh, 160001",
+   "connected_junctions": [],
+   "traffic_light": true},
+  
+  {"id": 6,
+   "lat": 30.765033,
+   "long": 76.787467,
+   "name": "Vidya Path, Sector 11, Chandigarh, 160012",
+   "connected_junctions": [1],
+   "traffic_light": true}
+  
+]
+}
