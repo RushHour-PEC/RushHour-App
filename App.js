@@ -23,6 +23,7 @@ function EmergencyNavigatorScreen(){
    component={EmergencyScreen} 
    options={{
     headerShown: false,
+    unmountOnBlur: true 
   }}
   
    />
@@ -46,6 +47,7 @@ function TrustNavigatorScreen(){
   component={TrustScoreScreen} 
   options={{
     headerShown: false,
+    unmountOnBlur: true 
   }}
 
   />
@@ -70,6 +72,7 @@ function MapNavigatorScreen(){
       component={MapScreen} 
       options={{
         headerShown: false,
+        unmountOnBlur: true 
       }}
    />
   
@@ -101,26 +104,28 @@ export default function App() {
       <Text style={{ textAlign: 'center', color ,fontSize: 12}}>{route.name}</Text>
     ),
 
-    tabBarOptions:{
-      "tabBarActiveTintColor": "black",
-      "tabBarInactiveTintColor": "black",
-      "tabBarActiveBackgroundColor": "rgba(0, 254, 71, 0.5)",
-      "tabBarInactiveBackgroundColor": "rgba(2, 116, 34, 0.47)",
-      "tabBarStyle": [
+    
+      tabBarActiveTintColor: "black",
+      tabBarInactiveTintColor: "black",
+      tabBarActiveBackgroundColor: "rgba(0, 254, 71, 0.5)",
+      tabBarInactiveBackgroundColor: "rgba(2, 116, 34, 0.47)",
+      tabBarStyle: [
         {
           "display": "flex"
         },
         null
       ]
-    }
-  })}
-  tabBarOptions={{
-      initialRouteName: 'Emergency',
-      activeBackgroundColor: 'rgba(0, 254, 71, 0.5)',
-      inactiveBackgroundColor: 'rgba(2, 116, 34, 0.47)',
-      activeTintColor: 'black',
-      inactiveTintColor: 'black'
-     }}
+
+  })
+
+}
+  // tabBarOptions={{
+  //     initialRouteName: 'Emergency',
+  //     activeBackgroundColor: 'rgba(0, 254, 71, 0.5)',
+  //     inactiveBackgroundColor: 'rgba(2, 116, 34, 0.47)',
+  //     activeTintColor: 'black',
+  //     inactiveTintColor: 'black'
+  //    }}
     
      
      >

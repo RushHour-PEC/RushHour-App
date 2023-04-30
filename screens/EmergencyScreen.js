@@ -13,7 +13,7 @@ import { DeviceSensor, Magnetometer} from 'expo-sensors';
 const EmergencyScreen = ({navigation}) => {
   const [currentLocation, setCurrentLocation] = useState(null);
   const [nearestJunction, setNearestJunction] = useState(null);
-  const [heading, setHeading] = useState(90);
+  const [heading, setHeading] = useState(0);
   const mapRef = useRef(null);
   
  
@@ -50,20 +50,20 @@ const EmergencyScreen = ({navigation}) => {
   }, []);
 
 
-  useEffect(() => {
-   let headingSubscription = Magnetometer.addListener(data => {
+  // useEffect(() => {
+  //  let headingSubscription = Magnetometer.addListener(data => {
     
-    const { x, y} = data;
-    const heading = Math.atan2(y, x) * (180 / Math.PI) + 90;
-    console.log("head-->",heading);
-    setHeading(heading >= 0 ? heading : 360 + heading);
-  });
-  console.log(heading);
-  Magnetometer.setUpdateInterval(1000);
-    return () => {
-      headingSubscription.remove();
-    };
-  }, [heading]);
+  //   const { x, y} = data;
+  //   const heading = Math.atan2(y, x) * (180 / Math.PI) + 90;
+  //   // console.log("head-->",heading);
+  //   setHeading(heading >= 0 ? heading : 360 + heading);
+  // });
+  // console.log(heading);
+  // Magnetometer.setUpdateInterval(1000);
+  //   return () => {
+  //     headingSubscription.remove();
+  //   };
+  // }, [heading]);
 
   
   // const animateMarkerToCoordinate = (markerRef, coordinate, heading) => {
