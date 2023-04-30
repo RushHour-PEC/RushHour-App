@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "228513646943",
+    "project_id": "rushhour-71742",
+    "storage_bucket": "rushhour-71742.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:228513646943:android:c80510541d7b745235ceea",
+        "android_client_info": {
+          "package_name": "host.exp.exponent"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "228513646943-04vsamh9eqbgs3aefba4l69k6u1i7oc8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDlXdMcGVZyo9EslPxRwLnth6u72DGtcnc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "228513646943-04vsamh9eqbgs3aefba4l69k6u1i7oc8.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
