@@ -53,7 +53,7 @@ const TrustScoreScreen = memo(() =>  {
         {
           accuracy: Location.Accuracy.High,
           distanceInterval: 0.01,
-          timeInterval: 10000,
+          timeInterval: 60000,
         },
         location => {
           console.log("location head -->",location.coords.heading);
@@ -111,7 +111,7 @@ const TrustScoreScreen = memo(() =>  {
     
       return nearestJunction;
     }),
-  [junctionsData]);
+  []);
   
 
 
@@ -243,7 +243,7 @@ const bearing = (lat1, lon1, lat2, lon2) => {
 
   const MarkerView = () => {
     return (
-      <View style={{ transform: [{ rotate: `${-currentLocation.heading}deg` }] }}>
+      <View style={{ transform: [{ rotate: `${currentLocation.heading}deg` }] }}>
         <Image source={arrowIcon} style={{ width: 25, height: 25 }} />
       </View>
     );
@@ -258,6 +258,8 @@ const bearing = (lat1, lon1, lat2, lon2) => {
           longitude: connectedJunction.long,
         }}
         title={`Junction ${connectedJunction.alphabet}`}
+        zIndex={998} 
+        alphaHitTest={true}
       />
     ),
     [nearestJunction]
@@ -277,18 +279,10 @@ const bearing = (lat1, lon1, lat2, lon2) => {
             latitudeDelta: 0.005,
             longitudeDelta: 0.005,
           }}
-          // showsUserLocation={true}
+          showsUserLocation={true}
          
           >
-          <Marker
          
-          coordinate={currentLocation}
-          identifier='origin'
-          anchor={{ x: 0.5, y: 0.5 }}
-          tracksViewChanges={false}
-          >
-         <MarkerView />
-          </Marker>
 
           
           {nearestJunction && (
@@ -300,8 +294,14 @@ const bearing = (lat1, lon1, lat2, lon2) => {
                 }}
                 identifier='destination'
                 title={""}
+                zIndex={999}
               >
-              <Callout tooltip>
+              <Callout 
+              tooltip  
+              alphaHitTest={true}
+              zIndex= {1}
+              style={zIndex=1}
+              >
               <View>
                 <View style={styles.bubble}>
                   <Text style={styles.name}>

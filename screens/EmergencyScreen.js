@@ -1,4 +1,4 @@
-import React, { useState, useEffect ,useRef,useLayoutEffect } from 'react';
+import React, { useState, useEffect ,useRef,useLayoutEffect,useCallback,memo } from 'react';
 import { View,  StyleSheet,Text,TouchableOpacity,Image} from 'react-native';
 import MapView, { Marker, Polyline } from 'react-native-maps';
 import * as Location from 'expo-location';
@@ -6,142 +6,75 @@ import junctionsData from '../data/junctions.json';
 import arrowIcon from '../assets/navigation.png';
 import MapViewDirections from 'react-native-maps-directions';
 import {GOOGLE_API_KEY} from '@env'
-import { DeviceSensor, Magnetometer} from 'expo-sensors';
+// import { DeviceSensor, Magnetometer} from 'expo-sensors';
 // import spawnPythonProcess from '../utils/spawn';
-
-
-const EmergencyScreen = ({navigation}) => {
+import memoizeOne from 'memoize-one';   
+ 
+const EmergencyScreen = memo(() => {
   const [currentLocation, setCurrentLocation] = useState(null);
   const [nearestJunction, setNearestJunction] = useState(null);
-  const [heading, setHeading] = useState(0);
   const mapRef = useRef(null);
   
- 
 
   useEffect(() => {
+  
     (async () => {
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
         console.log('Permission to access location was denied');
         return;
       }
-
+  
       let location = await Location.getCurrentPositionAsync({});
       setCurrentLocation(location.coords);
-
+     
       const locationSubscription = await Location.watchPositionAsync(
         {
           accuracy: Location.Accuracy.High,
-          distanceInterval: 1,
-          timeInterval: 1000,
+          distanceInterval: 0.01,
+          timeInterval: 60000,
         },
         location => {
+          console.log("location head -->",location.coords.heading);
           setCurrentLocation(location.coords);
+          if (mapRef.current) {
+            mapRef.current.animateToRegion(
+              {
+                latitude: location.coords.latitude,
+                longitude: location.coords.longitude,
+                latitudeDelta: 0.005,
+                longitudeDelta: 0.005,
+              },
+              60000 // duration in milliseconds
+            );
+          }
         },
       );
-     
+  
     
       return () => {
         locationSubscription.remove();
        
       };
-
     })();
   }, []);
 
-
-  // useEffect(() => {
-  //  let headingSubscription = Magnetometer.addListener(data => {
-    
-  //   const { x, y} = data;
-  //   const heading = Math.atan2(y, x) * (180 / Math.PI) + 90;
-  //   // console.log("head-->",heading);
-  //   setHeading(heading >= 0 ? heading : 360 + heading);
-  // });
-  // console.log(heading);
-  // Magnetometer.setUpdateInterval(1000);
-  //   return () => {
-  //     headingSubscription.remove();
-  //   };
-  // }, [heading]);
-
-  
-  // const animateMarkerToCoordinate = (markerRef, coordinate, heading) => {
-  //   markerRef.current?.animateMarkerToCoordinate(coordinate, 500);
-  //   mapRef.current?.animateCamera(
-  //     {
-  //       center: coordinate,
-  //       heading: heading,
-  //       zoom: 15,
-  //       pitch: 0,
-  //     },
-  //     500
-  //   );
-  // };
-
-  useEffect(() => {
-   
-
-    if (currentLocation) {
-      // Find the nearest junction to the current location
-      // let minDistance = Infinity;
-      // let nearestJunction = null;
-      // junctionsData.junctions.forEach(junction => {
-      //   const distance = calculateDistance(
-      //     currentLocation.latitude,
-      //     currentLocation.longitude,
-      //     junction.lat,
-      //     junction.long,
-      //   );
-      //   if (distance < minDistance) {
-      //     minDistance = distance;
-      //     nearestJunction = junction;
-      //   }
-      // });
-      // setNearestJunction(nearestJunction);
-
-
-      mapRef.current.animateToRegion({
-        latitude: currentLocation.latitude,
-        longitude: currentLocation.longitude,
-        latitudeDelta: 0.005,
-        longitudeDelta: 0.005,
+  const findNearestJunction = useCallback(
+    memoizeOne((currentLocation, heading) => {
+      const filteredJunctions = junctionsData.junctions.filter(junction => {
+        const angle = bearing(
+          currentLocation.latitude,
+          currentLocation.longitude,
+          junction.lat,
+          junction.long,
+        );
+        const angleDiff = Math.abs(angle - heading);
+        return angleDiff <= 45; // Use a 45-degree threshold
       });
-
-      // const markerRef = mapRef.current?.getMarkerRef('origin');
-      // if (markerRef) {
-      //   animateMarkerToCoordinate(markerRef, currentLocation, heading);
-      // }
-
-    //   mapRef.current.fitToSuppliedMarkers(['origin', 'destination'], {
-    //     edgePadding: { top: 200, right: 200, bottom: 200, left: 200 }
-    // });
-    }
-  }, [currentLocation,heading]);
-  
-  
-
-  const handleRequestGreenCorridor = () => {
-    // Find the nearest junction to the current location
-
-    const filteredJunctions = junctionsData.junctions.filter(junction => {
-      const angle = bearing(
-        currentLocation.latitude,
-        currentLocation.longitude,
-        junction.lat,
-        junction.long,
-      );
-      const angleDiff = Math.abs(angle - heading);
-      return angleDiff <= 30; // Use a 30-degree threshold
-    });
-
-
-
-    let minDistance = Infinity;
-    let nearestJunction = null;
-    filteredJunctions.forEach(junction => {
-        
-     
+    
+      let minDistance = Infinity;
+      let nearestJunction = null;
+      filteredJunctions.forEach(junction => {
         const distance = calculateDistance(
           currentLocation.latitude,
           currentLocation.longitude,
@@ -153,11 +86,27 @@ const EmergencyScreen = ({navigation}) => {
           nearestJunction = junction;
         }
       });
-    setNearestJunction(nearestJunction);
+    
+      return nearestJunction;
+    }),
+  []);
 
+  const handleRequestGreenCorridor = () => {
+    // Find the nearest junction to the current location
+    if (!currentLocation) {
+      return;
+    }
+  
+    const nearestJunction = findNearestJunction(
+      currentLocation,
+      currentLocation?.heading
+    );
+  
+    setNearestJunction(nearestJunction);
+  
     // Call the spawnPythonProcess function
     // spawnPythonProcess()
-  };
+  }
   
   // Calculate the bearing angle between two coordinates
 const bearing = (lat1, lon1, lat2, lon2) => {
@@ -190,12 +139,16 @@ const bearing = (lat1, lon1, lat2, lon2) => {
 
   const MarkerView = () => {
     return (
-      <View style={{ transform: [{ rotate: `${heading}deg` }] }}>
-        <Image source={arrowIcon} style={{ width: 25, height: 25 }} />
+      <View style={{ transform: [{ rotate: `${currentLocation.heading}deg` }] }}>
+        <Image 
+        fadeDuration={0}
+        source={arrowIcon} 
+        style={{ width: 25, height: 25 }} />
       </View>
     );
   };
 
+  
   return (
     <View style={styles.container}>
       {currentLocation && 
@@ -207,14 +160,12 @@ const bearing = (lat1, lon1, lat2, lon2) => {
             longitude: currentLocation.longitude,
             latitudeDelta: 0.005,
             longitudeDelta: 0.005,
-          }}>
-          <Marker 
+          }}
+          showsUserLocation={true}
           
-          coordinate={currentLocation} 
-          identifier='origin'
           >
-          <MarkerView />
-          </Marker>
+          
+
           {nearestJunction && (
             <>
               <Marker
@@ -231,15 +182,13 @@ const bearing = (lat1, lon1, lat2, lon2) => {
                       longitude: nearestJunction.long,
                     }}
                     apikey={GOOGLE_API_KEY}
-                    strokeColor="rgb(0, 122, 255)"
-                    strokeWidth={5}
+                    strokeColor="#111111"
+                    strokeWidth={4}
                     mode='WALKING'  // BICYCLING , WALKING,  DRIVING
                 />
             
             </>
           )}
-
-         
         </MapView>
       }
       <View style={styles.buttonContainer}>
@@ -249,7 +198,7 @@ const bearing = (lat1, lon1, lat2, lon2) => {
       </View>
     </View>
   )}
-
+  )
 
 
 const styles = StyleSheet.create({
