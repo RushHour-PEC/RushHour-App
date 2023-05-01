@@ -1,8 +1,6 @@
 import { Button, StyleSheet, Text, TextInput, View } from 'react-native'
 import React, { useState, useRef } from 'react'
 import PhoneInput from 'react-native-phone-number-input'
-// import auth from '@react-native-firebase/auth'
-import firestore from '@react-native-firebase/firestore'
 import {auth,db} from '../config'
 
 export default RegisterScreen = ({ navigation }) => {

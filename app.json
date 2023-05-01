@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "RushHour-App",
-    "slug": "RushHour-App",
+    "name": "rushhour-app",
+    "slug": "rushhour-App",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -18,18 +18,12 @@
       "supportsTablet": true
     },
     "android": {
-      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      },
-      "package": "host.exp.exponent"
+      }
     },
     "plugins": [
-      "@react-native-firebase/app",
-      "@react-native-firebase/perf",
-      "@react-native-firebase/crashlytics",
-      "@react-native-firebase/auth"
     ],
     "web": {
       "favicon": "./assets/favicon.png"

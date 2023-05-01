@@ -1,6 +1,5 @@
 import { Button, StyleSheet, Text, TextInput, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
-// import auth from '@react-native-firebase/auth'
 import {auth } from '../config'
 
 export default LoginScreen = ({navigation}) => {
