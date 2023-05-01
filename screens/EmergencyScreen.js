@@ -55,10 +55,10 @@ const EmergencyScreen = ({navigation}) => {
     
     const { x, y} = data;
     const heading = Math.atan2(y, x) * (180 / Math.PI) + 90;
-    console.log("head-->",heading);
+    // console.log("head-->",heading);
     setHeading(heading >= 0 ? heading : 360 + heading);
   });
-  console.log(heading);
+  // console.log(heading);
   Magnetometer.setUpdateInterval(1000);
     return () => {
       headingSubscription.remove();

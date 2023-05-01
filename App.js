@@ -1,12 +1,16 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, AppRegistry } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { createStackNavigator } from '@react-navigation/stack';
 import EmergencyScreen from './screens/EmergencyScreen';
 import TrustScoreScreen from './screens/TrustScoreScreen';
+import RegisterScreen from './screens/RegisterScreen'
 import MapScreen from './screens/MapScreen';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import LoginScreen from './screens/LoginScreen';
+import 'react-native-gesture-handler';
+
 
 const Tab = createBottomTabNavigator()
 const EmergencyNavigator = createStackNavigator()
@@ -139,6 +143,19 @@ export default function App() {
       }}
       component={TrustNavigatorScreen}
      />
+     <Tab.Screen
+      name="Register"
+      options={{
+        headerShown: false,
+      }}
+      component={RegisterScreen}
+     /><Tab.Screen
+      name="Login"
+      options={{
+        headerShown: false,
+      }}
+      component={LoginScreen}
+     />
      
      
      
@@ -155,3 +172,4 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 });
+
