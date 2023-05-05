@@ -8,6 +8,20 @@ import MapViewDirections from 'react-native-maps-directions';
 import {GOOGLE_API_KEY} from '@env'
 // import { DeviceSensor, Magnetometer} from 'expo-sensors';
 // import spawnPythonProcess from '../utils/spawn';
+
+import { database } from '../firebase';
+import { getDatabase, ref, get, set } from 'firebase/database';
+
+
+
+// import firebase from 'firebase/app';
+// import 'firebase/database';
+
+
+
+
+
+
 import memoizeOne from 'memoize-one';   
  
 const EmergencyScreen = memo(() => {
@@ -105,9 +119,61 @@ const EmergencyScreen = memo(() => {
     setNearestJunction(nearestJunction);
   
     // Call the spawnPythonProcess function
-    // spawnPythonProcess()
+    // Fetch the value of the 'flag' variable from the database
+
+
+
+
+
+
+
+    // const flagRef = firebase.database().ref('flag');
+
+    // flagRef.once('value', (snapshot) => {
+    //   const flagValue = snapshot.val();
+    //   const newFlagValue = !flagValue;
+
+    //   flagRef.set(newFlagValue);
+
+    //   setFlag(newFlagValue);
+    // });
+
+
+
+
+
+    // get(ref(database, 'flag')).then((snapshot) => {
+    //   const flagValue = snapshot.val();
+    //   console.log('The value of the flag variable is:', flagValue);
+    // });
+
+
+    get(ref(database, 'flag')).then((snapshot) => {
+      const flagValue = snapshot.val();
+      
+      set(ref(database, 'flag'), !flagValue);
+      console.log('The value of the flag variable is:', !flagValue);
+    });
+
+
+
+
+
+
+
+
+
+
+
+
+    // get(ref(database, 'flag')).then((snapshot) => {
+    //   const flagValue = snapshot.val();
+    //   console.log('The value of the flag variable is:', flagValue);
+    // });
   }
   
+
+
   // Calculate the bearing angle between two coordinates
 const bearing = (lat1, lon1, lat2, lon2) => {
   const y = Math.sin(lon2 - lon1) * Math.cos(lat2);
