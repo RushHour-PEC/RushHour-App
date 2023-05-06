@@ -5,9 +5,10 @@ import * as Location from 'expo-location';
 import junctionsData from '../data/junctions.json';
 import arrowIcon from '../assets/navigation.png';
 import MapViewDirections from 'react-native-maps-directions';
-import {GOOGLE_API_KEY,OPEN_WEATHER_API_KEY} from '@env'
+import {GOOGLE_API_KEY1,OPEN_WEATHER_API_KEY} from '@env'
 import memoizeOne from 'memoize-one';
 import _ from 'lodash';
+import { Loading } from '../components/Loading';
 
 const weatherValues = {
   'Thunderstorm': 0,
@@ -34,6 +35,7 @@ const TrustScoreScreen = memo(() =>  {
   const [nearestJunction, setNearestJunction] = useState(null);
   const [connectedJunctions,setConnectedJunctions] = useState([])
   const [trust,setTrust] = useState({});
+  const [isLoading,setIsLoading] = useState(true);
   const mapRef = useRef(null);
 
 
@@ -48,15 +50,15 @@ const TrustScoreScreen = memo(() =>  {
   
       let location = await Location.getCurrentPositionAsync({});
       setCurrentLocation(location.coords);
-     
+      setIsLoading(false)
       const locationSubscription = await Location.watchPositionAsync(
         {
           accuracy: Location.Accuracy.High,
           distanceInterval: 0.01,
-          timeInterval: 60000,
+          timeInterval: 10000,
         },
         location => {
-          console.log("location head -->",location.coords.heading);
+          console.log("location head Trust-->",location.coords.heading);
           setCurrentLocation(location.coords);
           if (mapRef.current) {
             mapRef.current.animateToRegion(
@@ -78,7 +80,7 @@ const TrustScoreScreen = memo(() =>  {
        
       };
     })();
-  }, []);
+  }, [mapRef]);
 
   
   const findNearestJunction = useCallback(
@@ -159,7 +161,7 @@ const debouncedFetch = _.debounce(async () => {
     const d_lat = connectedJunction.lat;
     const d_long = connectedJunction.long;
 
-    const trafficUrl = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${s_lat}%2C${s_long}&destinations=${d_lat}%2C${d_long}&mode=driving&departure_time=now&traffic_model=best_guess&key=${GOOGLE_API_KEY}&alternatives=true`;
+    const trafficUrl = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${s_lat}%2C${s_long}&destinations=${d_lat}%2C${d_long}&mode=driving&departure_time=now&traffic_model=best_guess&key=${GOOGLE_API_KEY1}&alternatives=true`;
     const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${d_lat}&lon=${d_long}&appid=${OPEN_WEATHER_API_KEY}`;
 
     const [trafficResponse, weatherResponse] = await Promise.all([
@@ -243,7 +245,10 @@ const bearing = (lat1, lon1, lat2, lon2) => {
 
   const MarkerView = () => {
     return (
-      <View style={{ transform: [{ rotate: `${currentLocation.heading}deg` }] }}>
+      <View style={{ 
+        transform: [{ rotate: `${currentLocation.heading}deg` }],
+        zIndex:100
+    }}>
         <Image source={arrowIcon} style={{ width: 25, height: 25 }} />
       </View>
     );
@@ -258,18 +263,22 @@ const bearing = (lat1, lon1, lat2, lon2) => {
           longitude: connectedJunction.long,
         }}
         title={`Junction ${connectedJunction.alphabet}`}
-        zIndex={998} 
-        alphaHitTest={true}
+        // zIndex={998} 
+        // alphaHitTest={true}
       />
     ),
     [nearestJunction]
   );
   
   return (
+
+
     <View style={styles.container}>
-      {
-        currentLocation && 
-         
+      
+        {isLoading ? ( // show loading component until currentLocation is available
+        <Loading text={"Loading..."} color={'black'}/>
+      ) : currentLocation ? ( // render the map view when currentLocation is available
+  
         <MapView
           style={styles.map}
           ref={mapRef}
@@ -279,12 +288,19 @@ const bearing = (lat1, lon1, lat2, lon2) => {
             latitudeDelta: 0.005,
             longitudeDelta: 0.005,
           }}
-          showsUserLocation={true}
+          // showsUserLocation={true}
          
           >
-         
 
-          
+          <Marker
+         
+          coordinate={currentLocation}
+          identifier='origin'
+          >
+         <MarkerView />
+          </Marker>
+
+         
           {nearestJunction && (
             <>
               <Marker
@@ -294,13 +310,13 @@ const bearing = (lat1, lon1, lat2, lon2) => {
                 }}
                 identifier='destination'
                 title={""}
-                zIndex={999}
+                // zIndex={999}
               >
               <Callout 
               tooltip  
               alphaHitTest={true}
               zIndex= {1}
-              style={zIndex=1}
+              // style={zIndex=1}
               >
               <View>
                 <View style={styles.bubble}>
@@ -328,8 +344,9 @@ const bearing = (lat1, lon1, lat2, lon2) => {
                       latitude: nearestJunction.lat,
                       longitude: nearestJunction.long,
                     }}
-                    apikey={GOOGLE_API_KEY}
+                    apikey={GOOGLE_API_KEY1}
                     strokeColor="#111111"
+                    // resetOnChange={false}
                     strokeWidth={4}
                     mode='WALKING'  // BICYCLING , WALKING,  DRIVING
                 />
@@ -343,10 +360,9 @@ const bearing = (lat1, lon1, lat2, lon2) => {
 
          
         </MapView>
-
-      }
-
-      
+          ): (
+            <Text>No location available</Text>
+          )}
     </View>
   )
 })

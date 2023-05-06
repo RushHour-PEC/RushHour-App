@@ -5,19 +5,22 @@ import * as Location from 'expo-location';
 import junctionsData from '../data/junctions.json';
 import arrowIcon from '../assets/navigation.png';
 import MapViewDirections from 'react-native-maps-directions';
-import {GOOGLE_API_KEY} from '@env'
+import {GOOGLE_API_KEY1} from '@env'
 // import { DeviceSensor, Magnetometer} from 'expo-sensors';
 // import spawnPythonProcess from '../utils/spawn';
 import memoizeOne from 'memoize-one';   
+import { Loading } from '../components/Loading';
  
 const EmergencyScreen = memo(() => {
   const [currentLocation, setCurrentLocation] = useState(null);
   const [nearestJunction, setNearestJunction] = useState(null);
+  const [isLoading,setIsLoading] = useState(true)
   const mapRef = useRef(null);
   
 
   useEffect(() => {
-  
+     
+    
     (async () => {
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
@@ -27,37 +30,40 @@ const EmergencyScreen = memo(() => {
   
       let location = await Location.getCurrentPositionAsync({});
       setCurrentLocation(location.coords);
+      setIsLoading(false)
      
       const locationSubscription = await Location.watchPositionAsync(
         {
           accuracy: Location.Accuracy.High,
           distanceInterval: 0.01,
-          timeInterval: 60000,
+          timeInterval: 10000,
         },
         location => {
-          console.log("location head -->",location.coords.heading);
-          setCurrentLocation(location.coords);
-          if (mapRef.current) {
-            mapRef.current.animateToRegion(
-              {
-                latitude: location.coords.latitude,
-                longitude: location.coords.longitude,
-                latitudeDelta: 0.005,
-                longitudeDelta: 0.005,
-              },
-              60000 // duration in milliseconds
-            );
-          }
+         
+          
+            console.log("location head Emgy-->",location.coords.heading);
+            setCurrentLocation(location.coords);
+              if (mapRef.current) {
+                mapRef.current.animateToRegion(
+                  {
+                    latitude: location.coords.latitude,
+                    longitude: location.coords.longitude,
+                    latitudeDelta: 0.005,
+                    longitudeDelta: 0.005,
+                  },
+                  10000 // duration in milliseconds
+                );
+              }
+
         },
       );
-  
     
       return () => {
         locationSubscription.remove();
        
       };
     })();
-  }, []);
+  }, [mapRef]);
 
   const findNearestJunction = useCallback(
     memoizeOne((currentLocation, heading) => {
@@ -139,7 +145,7 @@ const bearing = (lat1, lon1, lat2, lon2) => {
 
   const MarkerView = () => {
     return (
-      <View style={{ transform: [{ rotate: `${currentLocation.heading}deg` }] }}>
+      <View style={{ transform: [{ rotate: `${currentLocation.heading}deg` }],zIndex:100 }}>
         <Image 
         fadeDuration={0}
         source={arrowIcon} 
@@ -151,8 +157,12 @@ const bearing = (lat1, lon1, lat2, lon2) => {
   
   return (
     <View style={styles.container}>
-      {currentLocation && 
-        <MapView
+      {isLoading ? ( // show loading component until currentLocation is available
+        <Loading text={"Loading..."} color={'black'}/>
+      ) : currentLocation ? ( // render the map view when currentLocation is available
+      <>
+      
+       <MapView
           style={styles.map}
           ref={mapRef}
           initialRegion={{
@@ -161,10 +171,14 @@ const bearing = (lat1, lon1, lat2, lon2) => {
             latitudeDelta: 0.005,
             longitudeDelta: 0.005,
           }}
-          showsUserLocation={true}
-          
+          // showsUserLocation={true}
+        >
+          <Marker
+            coordinate={currentLocation}
+            identifier='origin'
           >
-          
+            <MarkerView />
+          </Marker>
 
           {nearestJunction && (
             <>
@@ -176,28 +190,32 @@ const bearing = (lat1, lon1, lat2, lon2) => {
                 identifier='destination'
               />
               <MapViewDirections
-                    origin={currentLocation}
-                    destination={{
-                      latitude: nearestJunction.lat,
-                      longitude: nearestJunction.long,
-                    }}
-                    apikey={GOOGLE_API_KEY}
-                    strokeColor="#111111"
-                    strokeWidth={4}
-                    mode='WALKING'  // BICYCLING , WALKING,  DRIVING
-                />
-            
+                origin={currentLocation}
+                destination={{
+                  latitude: nearestJunction.lat,
+                  longitude: nearestJunction.long,
+                }}
+                apikey={GOOGLE_API_KEY1}
+                strokeColor="#111111"
+                strokeWidth={4}
+                mode='WALKING' // BICYCLING , WALKING,  DRIVING
+              />
             </>
           )}
         </MapView>
-      }
       <View style={styles.buttonContainer}>
-      <TouchableOpacity style={styles.button} onPress={handleRequestGreenCorridor}>
-         <Text style={styles.buttonText}>Request Green Corridor</Text>
-       </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={handleRequestGreenCorridor}>
+          <Text style={styles.buttonText}>Request Green Corridor</Text>
+        </TouchableOpacity>
       </View>
+      </>  
+     
+      ) : (
+        <Text>No location available</Text>
+      )}
+     
     </View>
-  )}
+  );}
   )
 
 
