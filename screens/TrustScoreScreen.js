@@ -54,8 +54,8 @@ const TrustScoreScreen = memo(() =>  {
       const locationSubscription = await Location.watchPositionAsync(
         {
           accuracy: Location.Accuracy.High,
-          distanceInterval: 0.01,
-          timeInterval: 10000,
+          distanceInterval: 0.1,
+          timeInterval: 30000,
         },
         location => {
           console.log("location head Trust-->",location.coords.heading);
@@ -247,7 +247,7 @@ const bearing = (lat1, lon1, lat2, lon2) => {
     return (
       <View style={{ 
         transform: [{ rotate: `${currentLocation.heading}deg` }],
-        zIndex:100
+        zIndex:1000
     }}>
         <Image source={arrowIcon} style={{ width: 25, height: 25 }} />
       </View>

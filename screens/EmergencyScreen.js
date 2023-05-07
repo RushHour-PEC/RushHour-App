@@ -11,17 +11,6 @@ import {GOOGLE_API_KEY1} from '@env'
 
 import { database } from '../firebase';
 import { getDatabase, ref, get, set } from 'firebase/database';
-
-
-
-// import firebase from 'firebase/app';
-// import 'firebase/database';
-
-
-
-
-
-
 import memoizeOne from 'memoize-one';   
 import { Loading } from '../components/Loading';
  
@@ -49,8 +38,8 @@ const EmergencyScreen = memo(() => {
       const locationSubscription = await Location.watchPositionAsync(
         {
           accuracy: Location.Accuracy.High,
-          distanceInterval: 0.01,
-          timeInterval: 10000,
+          distanceInterval: 0.1,
+          timeInterval: 30000,
         },
         location => {
          
@@ -124,36 +113,7 @@ const EmergencyScreen = memo(() => {
   
     setNearestJunction(nearestJunction);
   
-    // Call the spawnPythonProcess function
-    // Fetch the value of the 'flag' variable from the database
-
-
-
-
-
-
-
-    // const flagRef = firebase.database().ref('flag');
-
-    // flagRef.once('value', (snapshot) => {
-    //   const flagValue = snapshot.val();
-    //   const newFlagValue = !flagValue;
-
-    //   flagRef.set(newFlagValue);
-
-    //   setFlag(newFlagValue);
-    // });
-
-
-
-
-
-    // get(ref(database, 'flag')).then((snapshot) => {
-    //   const flagValue = snapshot.val();
-    //   console.log('The value of the flag variable is:', flagValue);
-    // });
-
-
+  
     get(ref(database, 'flag')).then((snapshot) => {
       const flagValue = snapshot.val();
       
@@ -161,21 +121,6 @@ const EmergencyScreen = memo(() => {
       console.log('The value of the flag variable is:', !flagValue);
     });
 
-
-
-
-
-
-
-
-
-
-
-
-    // get(ref(database, 'flag')).then((snapshot) => {
-    //   const flagValue = snapshot.val();
-    //   console.log('The value of the flag variable is:', flagValue);
-    // });
   }
   
 
@@ -211,7 +156,11 @@ const bearing = (lat1, lon1, lat2, lon2) => {
 
   const MarkerView = () => {
     return (
-      <View style={{ transform: [{ rotate: `${currentLocation.heading}deg` }],zIndex:100 }}>
+      <View 
+      style={{ transform: [{ rotate: `${currentLocation.heading}deg` }],
+      zIndex:1000
+       }}
+    >
         <Image 
         fadeDuration={0}
         source={arrowIcon} 
@@ -255,6 +204,7 @@ const bearing = (lat1, lon1, lat2, lon2) => {
                 }}
                 identifier='destination'
               />
+              
               <MapViewDirections
                 origin={currentLocation}
                 destination={{
@@ -266,6 +216,8 @@ const bearing = (lat1, lon1, lat2, lon2) => {
                 strokeWidth={4}
                 mode='WALKING' // BICYCLING , WALKING,  DRIVING
               />
+              
+              
             </>
           )}
         </MapView>
