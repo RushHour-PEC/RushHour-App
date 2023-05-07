@@ -7,6 +7,18 @@ import EmergencyScreen from './screens/EmergencyScreen';
 import TrustScoreScreen from './screens/TrustScoreScreen';
 import MapScreen from './screens/MapScreen';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { database } from './firebase';
+import { getDatabase, ref, get } from 'firebase/database';
+
+// Fetch the value of the 'flag' variable from the database
+get(ref(database, 'flag')).then((snapshot) => {
+  const flagValue = snapshot.val();
+  console.log('The value of the flag variable is:', flagValue);
+});
+
+
+
+
 
 const Tab = createBottomTabNavigator()
 const EmergencyNavigator = createStackNavigator()
