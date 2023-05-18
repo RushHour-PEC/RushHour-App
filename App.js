@@ -3,19 +3,34 @@ import { StyleSheet, Text, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { createStackNavigator } from '@react-navigation/stack';
+
 import EmergencyScreen from './screens/EmergencyScreen';
 import TrustScoreScreen from './screens/TrustScoreScreen';
 import MapScreen from './screens/MapScreen';
+import LoginScreen from './screens/LoginScreen';
+
+
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { database } from './firebase';
 import { getDatabase, ref, get } from 'firebase/database';
 
-// Fetch the value of the 'flag' variable from the database
-get(ref(database, 'flag')).then((snapshot) => {
-  const flagValue = snapshot.val();
-  console.log('The value of the flag variable is:', flagValue);
-});
+// // Fetch the value of the 'flag' variable from the database
+// get(ref(database, 'flag')).then((snapshot) => {
+//   const flagValue = snapshot.val();
+//   console.log('The value of the flag variable is:', flagValue);
+// });
 
+
+// // Assuming you have the userId available for the user you want to fetch
+// const userId = "bt19103061";
+
+// // Fetch the user data from the database
+// get(ref(database, 'Users/' + userId)).then((snapshot) => {
+//   const userData = snapshot.val();
+//   console.log('User data:', userData);
+// }).catch((error) => {
+//   console.error('Error fetching user data:', error);
+// });
 
 
 
@@ -24,6 +39,32 @@ const Tab = createBottomTabNavigator()
 const EmergencyNavigator = createStackNavigator()
 const TrustNavigator = createStackNavigator()
 const MapNavigator = createStackNavigator()
+const LoginNavigator = createStackNavigator()
+
+
+
+function LoginNavigatorScreen(){
+  return(
+
+<LoginNavigator.Navigator>
+   
+  <LoginNavigator.Screen
+  name="LoginScreen" 
+  component={LoginScreen} 
+  options={{
+   headerShown: false,
+   unmountOnBlur: true 
+ }}
+ 
+  />
+  
+  </LoginNavigator.Navigator>
+
+  )
+ 
+
+}
+
 
 function EmergencyNavigatorScreen(){
    return(
@@ -109,6 +150,12 @@ export default function App() {
         } else if (route.name === 'Trust') {
           iconName = focused ? 'checkmark-circle' : 'checkmark-circle-outline';
         }
+
+        else if (route.name ==='Home')
+        {
+          iconName = focused ? 'home' : 'home-outline';
+        }
+
         return <Ionicons name={iconName} size={size} color={color} />;
       },
       
@@ -141,6 +188,16 @@ export default function App() {
     
      
      >
+
+    <Tab.Screen
+      name="Home"
+      // options={{
+      //   headerShown: false,
+      // }}
+      component={LoginNavigatorScreen}
+     />
+
+
      <Tab.Screen
      name="Emergency" 
       component={EmergencyNavigatorScreen}
@@ -157,6 +214,7 @@ export default function App() {
       component={TrustNavigatorScreen}
      />
      
+  
      
      
      </Tab.Navigator>
