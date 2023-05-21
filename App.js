@@ -5,10 +5,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { createStackNavigator } from '@react-navigation/stack';
 import EmergencyScreen from './screens/EmergencyScreen';
 import TrustScoreScreen from './screens/TrustScoreScreen';
+import ProfileScreen from './screens/ProfileScreen';
 import MapScreen from './screens/MapScreen';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { database } from './firebase';
 import { getDatabase, ref, get } from 'firebase/database';
+import { useEffect } from 'react';
 
 // Fetch the value of the 'flag' variable from the database
 get(ref(database, 'flag')).then((snapshot) => {
@@ -17,13 +19,12 @@ get(ref(database, 'flag')).then((snapshot) => {
 });
 
 
-
-
-
 const Tab = createBottomTabNavigator()
 const EmergencyNavigator = createStackNavigator()
 const TrustNavigator = createStackNavigator()
 const MapNavigator = createStackNavigator()
+const ProfileNavigator = createStackNavigator()
+
 
 function EmergencyNavigatorScreen(){
    return(
@@ -72,6 +73,28 @@ function TrustNavigatorScreen(){
 
 }
 
+function ProfileNavigatorScreen(){
+  return(
+
+<ProfileNavigator.Navigator>
+   
+  <ProfileNavigator.Screen
+  name="ProfileScreen" 
+  component={ProfileScreen} 
+  options={{
+   headerShown: false,
+   unmountOnBlur: true 
+ }}
+ 
+  />
+  
+  </ProfileNavigator.Navigator>
+
+  )
+ 
+
+}
+
 function MapNavigatorScreen(){
   
 
@@ -95,6 +118,17 @@ function MapNavigatorScreen(){
 
 }
 export default function App() {
+  
+  //  useFocusEffect(() => {
+  //   // Add your code here to refresh the screen
+  //   console.log('Screen refreshed');
+
+  //   // Return a cleanup function if needed
+  //   return () => {
+  //     // Cleanup code here
+  //   };
+  // });
+
   return (
     <NavigationContainer>
      <Tab.Navigator
@@ -102,13 +136,17 @@ export default function App() {
     
       tabBarIcon: ({ focused, color, size }) => {
         let iconName;
-        size = focused? 30:25;
+        size = focused? 40:35;
         if (route.name === 'Emergency') {
           iconName = focused ? 'add-circle' : 'add-circle-outline';
           
         } else if (route.name === 'Trust') {
           iconName = focused ? 'checkmark-circle' : 'checkmark-circle-outline';
+        } else if (route.name === 'Profile'){
+          iconName = focused ? 'person-circle' : 'person-circle-outline';
         }
+         
+
         return <Ionicons name={iconName} size={size} color={color} />;
       },
       
@@ -123,7 +161,8 @@ export default function App() {
       tabBarInactiveBackgroundColor: "rgba(2, 116, 34, 0.47)",
       tabBarStyle: [
         {
-          "display": "flex"
+          display: "flex",
+          height:60
         },
         null
       ]
@@ -131,15 +170,7 @@ export default function App() {
   })
 
 }
-  // tabBarOptions={{
-  //     initialRouteName: 'Emergency',
-  //     activeBackgroundColor: 'rgba(0, 254, 71, 0.5)',
-  //     inactiveBackgroundColor: 'rgba(2, 116, 34, 0.47)',
-  //     activeTintColor: 'black',
-  //     inactiveTintColor: 'black'
-  //    }}
-    
-     
+  
      >
      <Tab.Screen
      name="Emergency" 
@@ -155,6 +186,23 @@ export default function App() {
         headerShown: false,
       }}
       component={TrustNavigatorScreen}
+     />
+
+     <Tab.Screen
+      name="Profile"
+      options={{
+        // headerShown: false,
+        headerTitle: 'My Profile',
+        headerTitleAlign: 'center',
+        headerStyle: {
+          backgroundColor: 'rgba(0, 254, 71, 0.5)',
+        },
+        headerTitleStyle: {
+          fontWeight: 'bold',
+        },
+
+      }}
+      component={ProfileNavigatorScreen}
      />
      
      

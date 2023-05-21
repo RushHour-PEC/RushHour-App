@@ -37,7 +37,7 @@ const TrustScoreScreen = memo(() =>  {
   const [trust,setTrust] = useState({});
   const [isLoading,setIsLoading] = useState(true);
   const mapRef = useRef(null);
-
+  const [selectedMarker, setSelectedMarker] = useState(null);
 
   useEffect(() => {
   
@@ -118,37 +118,54 @@ const TrustScoreScreen = memo(() =>  {
 
 
   useEffect(() => {
-   
-    if (!currentLocation) {
+    if (!currentLocation && !selectedMarker) {
       return;
     }
-
-      const nearestJunction = findNearestJunction(
-        currentLocation,currentLocation.heading
-      );
-
-     const connectedJunctionsData = nearestJunction?.connected_junctions
-        ?.map((connectedJunction, index) => {
-          const connectedJunctionData = junctionsData.junctions.find(
-            j => j.id === connectedJunction,
-          );
-          return connectedJunctionData
-            ? {
-                ...connectedJunctionData,
-                alphabet: String.fromCharCode(65 + index),
-              }
-            : null;
-        }).filter(Boolean);
-
-      setNearestJunction(nearestJunction);
-      setConnectedJunctions(connectedJunctionsData);
-
-  }, [currentLocation]);
   
-
+    let nearestJunction = null;
+    if (selectedMarker) {
+      let minDistance = Infinity;
+      junctionsData.junctions.forEach(junction => {
+        const distance = calculateDistance(
+          selectedMarker.latitude,
+          selectedMarker.longitude,
+          junction.lat,
+          junction.long,
+        );
+        if (distance < minDistance) {
+          minDistance = distance;
+          nearestJunction = junction;
+        }
+      });
+    }
+    else{
+      nearestJunction = findNearestJunction(currentLocation,currentLocation.heading)
+    }
+    
+  
+    const connectedJunctionsData = nearestJunction?.connected_junctions
+      ?.map((connectedJunction, index) => {
+        const connectedJunctionData = junctionsData.junctions.find(
+          (j) => j.id === connectedJunction
+        );
+        return connectedJunctionData
+          ? {
+              ...connectedJunctionData,
+              alphabet: String.fromCharCode(65 + index),
+            }
+          : null;
+      })
+      .filter(Boolean);
+  
+    setNearestJunction(nearestJunction);
+    setConnectedJunctions(connectedJunctionsData);
+    
+  }, [currentLocation, selectedMarker]);
   
   // define the debounced function
 const debouncedFetch = _.debounce(async () => {
+  
+  
   if (!nearestJunction) {
     return;
   }
@@ -289,7 +306,7 @@ const bearing = (lat1, lon1, lat2, lon2) => {
             longitudeDelta: 0.005,
           }}
           // showsUserLocation={true}
-         
+          onPress={(e) => setSelectedMarker(e.nativeEvent.coordinate)}
           >
 
           <Marker
@@ -299,6 +316,15 @@ const bearing = (lat1, lon1, lat2, lon2) => {
           >
          <MarkerView />
           </Marker>
+
+          {selectedMarker && (
+            <Marker
+              coordinate={selectedMarker}
+              identifier="selected"
+              title="Selected Location"
+              pinColor="green"
+            />
+          )}
 
          
           {nearestJunction && (
