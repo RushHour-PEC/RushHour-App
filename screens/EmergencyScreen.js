@@ -1,147 +1,89 @@
-import React, { useState, useEffect ,useRef,useLayoutEffect } from 'react';
+import React, { useState, useEffect ,useRef,useLayoutEffect,useCallback,memo } from 'react';
 import { View,  StyleSheet,Text,TouchableOpacity,Image} from 'react-native';
 import MapView, { Marker, Polyline } from 'react-native-maps';
 import * as Location from 'expo-location';
 import junctionsData from '../data/junctions.json';
 import arrowIcon from '../assets/navigation.png';
 import MapViewDirections from 'react-native-maps-directions';
-import {GOOGLE_API_KEY} from '@env'
-import { DeviceSensor, Magnetometer} from 'expo-sensors';
+import {GOOGLE_API_KEY1} from '@env'
+// import { DeviceSensor, Magnetometer} from 'expo-sensors';
 // import spawnPythonProcess from '../utils/spawn';
 
-
-const EmergencyScreen = ({navigation}) => {
+import { database } from '../firebase';
+import { getDatabase, ref, get, set } from 'firebase/database';
+import memoizeOne from 'memoize-one';   
+import { Loading } from '../components/Loading';
+ 
+const EmergencyScreen = memo(() => {
   const [currentLocation, setCurrentLocation] = useState(null);
   const [nearestJunction, setNearestJunction] = useState(null);
-  const [heading, setHeading] = useState(90);
+  const [isLoading,setIsLoading] = useState(true)
   const mapRef = useRef(null);
   
- 
 
   useEffect(() => {
+     
+    
     (async () => {
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
         console.log('Permission to access location was denied');
         return;
       }
-
+  
       let location = await Location.getCurrentPositionAsync({});
       setCurrentLocation(location.coords);
-
+      setIsLoading(false)
+     
       const locationSubscription = await Location.watchPositionAsync(
         {
           accuracy: Location.Accuracy.High,
-          distanceInterval: 1,
-          timeInterval: 1000,
+          distanceInterval: 0.1,
+          timeInterval: 30000,
         },
         location => {
-          setCurrentLocation(location.coords);
+         
+          
+            console.log("location head Emgy-->",location.coords.heading);
+            setCurrentLocation(location.coords);
+              if (mapRef.current) {
+                mapRef.current.animateToRegion(
+                  {
+                    latitude: location.coords.latitude,
+                    longitude: location.coords.longitude,
+                    latitudeDelta: 0.005,
+                    longitudeDelta: 0.005,
+                  },
+                  10000 // duration in milliseconds
+                );
+              }
+
         },
       );
-     
     
       return () => {
         locationSubscription.remove();
        
       };
-
     })();
-  }, []);
+  }, [mapRef]);
 
-
-  useEffect(() => {
-   let headingSubscription = Magnetometer.addListener(data => {
-    
-    const { x, y} = data;
-    const heading = Math.atan2(y, x) * (180 / Math.PI) + 90;
-    console.log("head-->",heading);
-    setHeading(heading >= 0 ? heading : 360 + heading);
-  });
-  console.log(heading);
-  Magnetometer.setUpdateInterval(1000);
-    return () => {
-      headingSubscription.remove();
-    };
-  }, [heading]);
-
-  
-  // const animateMarkerToCoordinate = (markerRef, coordinate, heading) => {
-  //   markerRef.current?.animateMarkerToCoordinate(coordinate, 500);
-  //   mapRef.current?.animateCamera(
-  //     {
-  //       center: coordinate,
-  //       heading: heading,
-  //       zoom: 15,
-  //       pitch: 0,
-  //     },
-  //     500
-  //   );
-  // };
-
-  useEffect(() => {
-   
-
-    if (currentLocation) {
-      // Find the nearest junction to the current location
-      // let minDistance = Infinity;
-      // let nearestJunction = null;
-      // junctionsData.junctions.forEach(junction => {
-      //   const distance = calculateDistance(
-      //     currentLocation.latitude,
-      //     currentLocation.longitude,
-      //     junction.lat,
-      //     junction.long,
-      //   );
-      //   if (distance < minDistance) {
-      //     minDistance = distance;
-      //     nearestJunction = junction;
-      //   }
-      // });
-      // setNearestJunction(nearestJunction);
-
-
-      mapRef.current.animateToRegion({
-        latitude: currentLocation.latitude,
-        longitude: currentLocation.longitude,
-        latitudeDelta: 0.005,
-        longitudeDelta: 0.005,
+  const findNearestJunction = useCallback(
+    memoizeOne((currentLocation, heading) => {
+      const filteredJunctions = junctionsData.junctions.filter(junction => {
+        const angle = bearing(
+          currentLocation.latitude,
+          currentLocation.longitude,
+          junction.lat,
+          junction.long,
+        );
+        const angleDiff = Math.abs(angle - heading);
+        return angleDiff <= 45; // Use a 45-degree threshold
       });
-
-      // const markerRef = mapRef.current?.getMarkerRef('origin');
-      // if (markerRef) {
-      //   animateMarkerToCoordinate(markerRef, currentLocation, heading);
-      // }
-
-    //   mapRef.current.fitToSuppliedMarkers(['origin', 'destination'], {
-    //     edgePadding: { top: 200, right: 200, bottom: 200, left: 200 }
-    // });
-    }
-  }, [currentLocation,heading]);
-  
-  
-
-  const handleRequestGreenCorridor = () => {
-    // Find the nearest junction to the current location
-
-    const filteredJunctions = junctionsData.junctions.filter(junction => {
-      const angle = bearing(
-        currentLocation.latitude,
-        currentLocation.longitude,
-        junction.lat,
-        junction.long,
-      );
-      const angleDiff = Math.abs(angle - heading);
-      return angleDiff <= 30; // Use a 30-degree threshold
-    });
-
-
-
-    let minDistance = Infinity;
-    let nearestJunction = null;
-    filteredJunctions.forEach(junction => {
-        
-     
+    
+      let minDistance = Infinity;
+      let nearestJunction = null;
+      filteredJunctions.forEach(junction => {
         const distance = calculateDistance(
           currentLocation.latitude,
           currentLocation.longitude,
@@ -153,12 +95,36 @@ const EmergencyScreen = ({navigation}) => {
           nearestJunction = junction;
         }
       });
-    setNearestJunction(nearestJunction);
+    
+      return nearestJunction;
+    }),
+  []);
 
-    // Call the spawnPythonProcess function
-    // spawnPythonProcess()
-  };
+  const handleRequestGreenCorridor = () => {
+    // Find the nearest junction to the current location
+    if (!currentLocation) {
+      return;
+    }
   
+    const nearestJunction = findNearestJunction(
+      currentLocation,
+      currentLocation?.heading
+    );
+  
+    setNearestJunction(nearestJunction);
+  
+  
+    get(ref(database, 'flag')).then((snapshot) => {
+      const flagValue = snapshot.val();
+      
+      set(ref(database, 'flag'), !flagValue);
+      console.log('The value of the flag variable is:', !flagValue);
+    });
+
+  }
+  
+
+
   // Calculate the bearing angle between two coordinates
 const bearing = (lat1, lon1, lat2, lon2) => {
   const y = Math.sin(lon2 - lon1) * Math.cos(lat2);
@@ -190,16 +156,28 @@ const bearing = (lat1, lon1, lat2, lon2) => {
 
   const MarkerView = () => {
     return (
-      <View style={{ transform: [{ rotate: `${heading}deg` }] }}>
-        <Image source={arrowIcon} style={{ width: 25, height: 25 }} />
+      <View 
+      style={{ transform: [{ rotate: `${currentLocation.heading}deg` }],
+      zIndex:1000
+       }}
+    >
+        <Image 
+        fadeDuration={0}
+        source={arrowIcon} 
+        style={{ width: 25, height: 25 }} />
       </View>
     );
   };
 
+  
   return (
     <View style={styles.container}>
-      {currentLocation && 
-        <MapView
+      {isLoading ? ( // show loading component until currentLocation is available
+        <Loading text={"Loading..."} color={'black'}/>
+      ) : currentLocation ? ( // render the map view when currentLocation is available
+      <>
+      
+       <MapView
           style={styles.map}
           ref={mapRef}
           initialRegion={{
@@ -207,14 +185,16 @@ const bearing = (lat1, lon1, lat2, lon2) => {
             longitude: currentLocation.longitude,
             latitudeDelta: 0.005,
             longitudeDelta: 0.005,
-          }}>
-          <Marker 
-          
-          coordinate={currentLocation} 
-          identifier='origin'
+          }}
+          // showsUserLocation={true}
+        >
+          <Marker
+            coordinate={currentLocation}
+            identifier='origin'
           >
-          <MarkerView />
+            <MarkerView />
           </Marker>
+
           {nearestJunction && (
             <>
               <Marker
@@ -224,32 +204,37 @@ const bearing = (lat1, lon1, lat2, lon2) => {
                 }}
                 identifier='destination'
               />
+              
               <MapViewDirections
-                    origin={currentLocation}
-                    destination={{
-                      latitude: nearestJunction.lat,
-                      longitude: nearestJunction.long,
-                    }}
-                    apikey={GOOGLE_API_KEY}
-                    strokeColor="rgb(0, 122, 255)"
-                    strokeWidth={5}
-                    mode='WALKING'  // BICYCLING , WALKING,  DRIVING
-                />
-            
+                origin={currentLocation}
+                destination={{
+                  latitude: nearestJunction.lat,
+                  longitude: nearestJunction.long,
+                }}
+                apikey={GOOGLE_API_KEY1}
+                strokeColor="#111111"
+                strokeWidth={4}
+                mode='WALKING' // BICYCLING , WALKING,  DRIVING
+              />
+              
+              
             </>
           )}
-
-         
         </MapView>
-      }
       <View style={styles.buttonContainer}>
-      <TouchableOpacity style={styles.button} onPress={handleRequestGreenCorridor}>
-         <Text style={styles.buttonText}>Request Green Corridor</Text>
-       </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={handleRequestGreenCorridor}>
+          <Text style={styles.buttonText}>Request Green Corridor</Text>
+        </TouchableOpacity>
       </View>
+      </>  
+     
+      ) : (
+        <Text>No location available</Text>
+      )}
+     
     </View>
-  )}
-
+  );}
+  )
 
 
 const styles = StyleSheet.create({
