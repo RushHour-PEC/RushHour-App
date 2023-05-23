@@ -1,14 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState,useContext } from 'react';
 import { View, Text, Image, TextInput, TouchableOpacity, StyleSheet, Alert, Dimensions } from 'react-native';
-
 import { database } from '../firebase';
-import { getDatabase, ref, get, set } from 'firebase/database';
-
+import { getDatabase, ref, get, set, update } from 'firebase/database';
+import { useNavigation } from '@react-navigation/native';
+import { UserContext } from '../store/UserContext';
 const { width, height } = Dimensions.get('window');
 
 const LoginScreen = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  
+  const navigation = useNavigation();
+  const { updateUser } = useContext(UserContext);
 
   const handleLogin = () => {
     // Basic validation
@@ -23,7 +26,29 @@ const LoginScreen = () => {
         const userData = snapshot.val();
         if (userData && userData.password === password) {
           // Successful login
+          updateUser(userData);
+          
           console.log('Login successful');
+          setUsername('')
+          setPassword('')
+           // Update the user data using the context
+          
+          
+          navigation.navigate('Profile', {
+            screen: 'ProfileScreen',
+            params: {
+              userData: {
+                name: userData.name,
+                phone: userData.phone,
+                car: userData.car,
+              },
+            },
+          });
+
+          
+
+         
+
         } else {
           // Invalid credentials
           Alert.alert('Error', 'Invalid username or password');
@@ -39,7 +64,7 @@ const LoginScreen = () => {
     <View style={styles.container}>
       {/* <Text style={styles.loginText}>Login</Text> */}
       <View style={styles.imageContainer}>
-        <Image source={require('./Ambulance_Logo.png')} style={styles.logoImage} />
+        <Image source={require('../assets/Ambulance_Logo.png')} style={styles.logoImage} />
       </View>
       <View style={styles.inputContainer}>
         <TextInput
@@ -102,7 +127,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
   loginButton: {
-    backgroundColor: '#0066CC',
+    backgroundColor: 'rgba(254, 0, 0, 0.6)',
     width: width * 0.6,
     height: height * 0.06,
     justifyContent: 'center',
@@ -111,7 +136,7 @@ const styles = StyleSheet.create({
     marginTop:height*-0.03
   },
   buttonText: {
-    color: '#FFFFFF',
+    color: 'black',
     fontSize: 16,
     fontWeight: 'bold',
   },

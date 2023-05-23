@@ -450,7 +450,7 @@ map:{
     borderTopColor: '#fff',
     borderWidth: 16,
     alignSelf: 'center',
-    marginTop: -2,
+    marginTop: -32,
   },
   arrowBorder: {
     backgroundColor: 'transparent',
@@ -459,7 +459,7 @@ map:{
     borderWidth: 16,
     alignSelf: 'center',
     marginTop: -0.5,
-    marginBottom: -0.5
+    marginBottom: -15
   },
 
   // Character name
