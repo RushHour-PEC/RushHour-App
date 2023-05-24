@@ -5,7 +5,8 @@ import * as Location from 'expo-location';
 import junctionsData from '../data/junctions.json';
 import arrowIcon from '../assets/navigation.png';
 import MapViewDirections from 'react-native-maps-directions';
-import {GOOGLE_API_KEY1} from '@env'
+
+import {GOOGLE_API_KEY1} from '@env' 
 // import { DeviceSensor, Magnetometer} from 'expo-sensors';
 // import spawnPythonProcess from '../utils/spawn';
 

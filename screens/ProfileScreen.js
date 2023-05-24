@@ -1,10 +1,16 @@
 import { StyleSheet, Text, View,TouchableOpacity,Image } from 'react-native'
 import React, { useState } from 'react'
+import { useNavigation, useRoute } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 
-const ProfileScreen = () => {
+const ProfileScreen = ({navigation}) => {
 
     const [image, setImage] = useState(null);
+    // console.log(navigation);
+
+    const route = useRoute();
+    const userData = route?.params?.userData;
+    
   
     const selectImage = async () => {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -23,7 +29,9 @@ const ProfileScreen = () => {
       
 
     };
+     
 
+   
     return (
         <View style={styles.container}>
         <View style={styles.imageContainer}>
@@ -43,17 +51,17 @@ const ProfileScreen = () => {
           <View style={styles.fieldsContainer}>
           <View style={styles.field}>
                 <Text style={styles.label}>Name</Text>
-                <Text style={styles.label}>Rahul Jindal</Text>
+                <Text style={styles.label}>{userData.name}</Text>
           </View>
 
            <View style={styles.field}>
            <Text style={styles.label}>Phone Number</Text>
-           <Text style={styles.label}>6283977481</Text>
+           <Text style={styles.label}>{userData.phone}</Text>
            </View>
             
            <View style={styles.field}>
             <Text style={styles.label}>Vehicle Number</Text>
-            <Text style={styles.label}>CH01AZ2357</Text>
+            <Text style={styles.label}>{userData.car}</Text>
            </View>
            
             

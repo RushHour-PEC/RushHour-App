@@ -3,20 +3,38 @@ import { StyleSheet, Text, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { createStackNavigator } from '@react-navigation/stack';
+
 import EmergencyScreen from './screens/EmergencyScreen';
 import TrustScoreScreen from './screens/TrustScoreScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import MapScreen from './screens/MapScreen';
+import LoginScreen from './screens/LoginScreen';
+import { UserProvider,UserContext } from './store/UserContext';
+
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { database } from './firebase';
 import { getDatabase, ref, get } from 'firebase/database';
-import { useEffect } from 'react';
+import { useContext, useEffect } from 'react';
 
-// Fetch the value of the 'flag' variable from the database
-get(ref(database, 'flag')).then((snapshot) => {
-  const flagValue = snapshot.val();
-  console.log('The value of the flag variable is:', flagValue);
-});
+// // Fetch the value of the 'flag' variable from the database
+// get(ref(database, 'flag')).then((snapshot) => {
+//   const flagValue = snapshot.val();
+//   console.log('The value of the flag variable is:', flagValue);
+// });
+
+
+// // Assuming you have the userId available for the user you want to fetch
+// const userId = "bt19103061";
+
+// // Fetch the user data from the database
+// get(ref(database, 'Users/' + userId)).then((snapshot) => {
+//   const userData = snapshot.val();
+//   console.log('User data:', userData);
+// }).catch((error) => {
+//   console.error('Error fetching user data:', error);
+// });
+
+
 
 
 const Tab = createBottomTabNavigator()
@@ -24,6 +42,33 @@ const EmergencyNavigator = createStackNavigator()
 const TrustNavigator = createStackNavigator()
 const MapNavigator = createStackNavigator()
 const ProfileNavigator = createStackNavigator()
+const LoginNavigator = createStackNavigator()
+
+
+
+function LoginNavigatorScreen(){
+  return(
+<UserProvider>
+<LoginNavigator.Navigator>
+   
+  <LoginNavigator.Screen
+  name="LoginScreen" 
+  component={LoginScreen} 
+  options={{
+   headerShown: false,
+   unmountOnBlur: true 
+ }}
+ 
+  />
+  
+  </LoginNavigator.Navigator>
+</UserProvider>
+
+
+  )
+ 
+
+}
 
 
 function EmergencyNavigatorScreen(){
@@ -75,7 +120,7 @@ function TrustNavigatorScreen(){
 
 function ProfileNavigatorScreen(){
   return(
-
+<UserProvider>
 <ProfileNavigator.Navigator>
    
   <ProfileNavigator.Screen
@@ -89,6 +134,8 @@ function ProfileNavigatorScreen(){
   />
   
   </ProfileNavigator.Navigator>
+</UserProvider>
+
 
   )
  
@@ -117,19 +164,20 @@ function MapNavigatorScreen(){
   
 
 }
-export default function App() {
+export default function App({route}) {
+   
+  // const [user,setUser] = useState('');
+  // console.log("context -->",useContext(UserContext));
+  const userData  = useContext(UserContext);
   
-  //  useFocusEffect(() => {
-  //   // Add your code here to refresh the screen
-  //   console.log('Screen refreshed');
-
-  //   // Return a cleanup function if needed
-  //   return () => {
-  //     // Cleanup code here
-  //   };
-  // });
-
+  // if (!userData) {
+  //   // Render some loading state or fallback UI
+  //   return <Text>Loading...</Text>;
+  // }
   return (
+    
+    <UserProvider>
+    
     <NavigationContainer>
      <Tab.Navigator
      screenOptions={({ route }) => ({
@@ -145,7 +193,11 @@ export default function App() {
         } else if (route.name === 'Profile'){
           iconName = focused ? 'person-circle' : 'person-circle-outline';
         }
-         
+
+        else if (route.name ==='Home')
+        {
+          iconName = focused ? 'home' : 'home-outline';
+        }
 
         return <Ionicons name={iconName} size={size} color={color} />;
       },
@@ -172,43 +224,96 @@ export default function App() {
 }
   
      >
-     <Tab.Screen
-     name="Emergency" 
-      component={EmergencyNavigatorScreen}
-      options={{
-        headerShown: false,
-      }}
-     />
+    
+     {true ? (
+      <>
+        <Tab.Screen
+          name="Emergency"
+          component={EmergencyNavigatorScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+  
+        <Tab.Screen
+          name="Trust"
+          options={{
+            headerShown: false,
+          }}
+          component={TrustNavigatorScreen}
+        />
        
-     <Tab.Screen
-      name="Trust"
-      options={{
-        headerShown: false,
-      }}
-      component={TrustNavigatorScreen}
-     />
+        //  <Tab.Screen
+        //   name="Profile"
+        //   options={{
+        //     // headerShown: false,
+        //     headerTitle: 'My Profile',
+        //     headerTitleAlign: 'center',
+        //     headerStyle: {
+        //       backgroundColor: 'rgba(0, 254, 71, 0.5)',
+        //     },
+        //     headerTitleStyle: {
+        //       fontWeight: 'bold',
+        //     },
+        //   }}
+        //   component={ProfileNavigatorScreen}
+        />
+       
+      </>
+    ) : (
+      <>
+      <Tab.Screen
+        name="Home"
+        options={{
+          // headerShown: false,
+          headerTitle: 'Home',
+          headerTitleAlign: 'center',
+          headerStyle: {
+            backgroundColor: 'rgba(0, 254, 71, 0.5)',
+          },
+          headerTitleStyle: {
+            fontWeight: 'bold',
+          },
+        }}
+        component={LoginNavigatorScreen}
+      />
 
-     <Tab.Screen
-      name="Profile"
-      options={{
-        // headerShown: false,
-        headerTitle: 'My Profile',
-        headerTitleAlign: 'center',
-        headerStyle: {
-          backgroundColor: 'rgba(0, 254, 71, 0.5)',
-        },
-        headerTitleStyle: {
-          fontWeight: 'bold',
-        },
+      <Tab.Screen
+          name="Trust"
+          options={{
+            headerShown: false,
+          }}
+          component={TrustNavigatorScreen}
+        />
 
-      }}
-      component={ProfileNavigatorScreen}
-     />
-     
-     
+        <Tab.Screen
+          name="Profile"
+          options={{
+            // headerShown: false,
+            headerTitle: 'My Profile',
+            headerTitleAlign: 'center',
+            headerStyle: {
+              backgroundColor: 'rgba(0, 254, 71, 0.5)',
+            },
+            headerTitleStyle: {
+              fontWeight: 'bold',
+            },
+          }}
+          component={ProfileNavigatorScreen}
+        />
+        
+      </>
+
+      
+      
+    )}
      
      </Tab.Navigator>
     </NavigationContainer>
+    
+    </UserProvider>
+    
+    
   );
 }
 

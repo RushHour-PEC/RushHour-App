@@ -5,6 +5,8 @@ import * as Location from 'expo-location';
 import junctionsData from '../data/junctions.json';
 import arrowIcon from '../assets/navigation.png';
 import MapViewDirections from 'react-native-maps-directions';
+
+
 import {GOOGLE_API_KEY1,OPEN_WEATHER_API_KEY} from '@env'
 import memoizeOne from 'memoize-one';
 import _ from 'lodash';
@@ -457,7 +459,7 @@ map:{
     borderWidth: 16,
     alignSelf: 'center',
     marginTop: -0.5,
-    // marginBottom: -15
+    marginBottom: -15
   },
 
   // Character name
