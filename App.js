@@ -243,21 +243,7 @@ export default function App({route}) {
           component={TrustNavigatorScreen}
         />
        
-        //  <Tab.Screen
-        //   name="Profile"
-        //   options={{
-        //     // headerShown: false,
-        //     headerTitle: 'My Profile',
-        //     headerTitleAlign: 'center',
-        //     headerStyle: {
-        //       backgroundColor: 'rgba(0, 254, 71, 0.5)',
-        //     },
-        //     headerTitleStyle: {
-        //       fontWeight: 'bold',
-        //     },
-        //   }}
-        //   component={ProfileNavigatorScreen}
-        />
+       
        
       </>
     ) : (
